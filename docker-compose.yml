@@ -1,0 +1,104 @@
+name: kafka-mission-control
+
+services:
+  # Kafka em modo KRaft (sem ZooKeeper), broker e controller no mesmo no.
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: kmc-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29092
+      # PLAINTEXT atende os containers pela rede interna; EXTERNAL atende o host
+      # (pytest, uvicorn local) em localhost:29092.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "29092:29092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  # Cria os topicos e encerra. A API e o worker esperam sua conclusao,
+  # o que evita depender da criacao automatica de topicos.
+  kafka-init:
+    image: apache/kafka:3.7.0
+    container_name: kmc-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - |
+        set -e
+        for topic in missions mission-status; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
+            --create --if-not-exists --topic "$$topic" \
+            --partitions 1 --replication-factor 1
+        done
+        echo '--- topicos disponiveis ---'
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+    restart: "no"
+
+  api:
+    build:
+      context: ./backend
+    container_name: kmc-api
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # Sem JWT_SECRET definido, a aplicacao cai no default de desenvolvimento.
+      # Defina no .env antes de expor a stack em qualquer rede publica.
+      JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-secret}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+    container_name: kmc-worker
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    command: ["python", "-m", "worker.main"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: kmc-frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+    restart: unless-stopped
+
+volumes:
+  kafka-data:

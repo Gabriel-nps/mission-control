@@ -1,0 +1,36 @@
+.mission-card {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+
+    .status-icon { font-size: 1.2rem; }
+    .priority-low { color: #28a745; }
+    .priority-medium { color: #ffc107; }
+    .priority-high { color: #dc3545; }
+  }
+
+  .card-status {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  .progress-bar {
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+
+    .progress-fill {
+      height: 100%;
+      background: #007bff;
+      transition: width 0.3s ease;
+    }
+  }
+}

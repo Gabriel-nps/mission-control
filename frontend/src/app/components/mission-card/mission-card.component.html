@@ -1,0 +1,15 @@
+<div class="mission-card" [attr.data-status]="mission.status">
+  <div class="card-header">
+    <span class="status-icon">{{ statusIcon }}</span>
+    <strong>{{ mission.name }}</strong>
+    <span class="priority" [class]="'priority-' + mission.priority.toLowerCase()">
+      {{ mission.priority }}
+    </span>
+  </div>
+  <div class="card-status">
+    Status: {{ mission.status }}
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" [style.width.%]="progressPercent"></div>
+  </div>
+</div>

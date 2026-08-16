@@ -1,0 +1,10 @@
+<div class="dashboard">
+  <header>
+    <h1>Mission Control</h1>
+    <span class="count">Total: {{ missionCount }} missions</span>
+    <button (click)="logout()">Logout</button>
+  </header>
+
+  <app-mission-create-form (missionCreated)="onMissionCreated()"></app-mission-create-form>
+  <app-mission-list [missions]="missions"></app-mission-list>
+</div>

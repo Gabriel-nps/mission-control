@@ -1,0 +1,45 @@
+# ---------- Python / backend ----------
+__pycache__/
+*.py[cod]
+*.so
+backend/venv/
+venv/
+.venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+coverage.xml
+htmlcov/
+
+# ---------- Node / Angular / frontend ----------
+node_modules/
+frontend/.angular/
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+npm-debug.log*
+yarn-error.log*
+.sass-cache/
+testem.log
+
+# ---------- Ambiente ----------
+# Ignora .env em qualquer nivel, mas preserva os .env.example versionados.
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# ---------- Editores / SO ----------
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---------- Kiro (specs, steering, quarentena) ----------
+.kiro/
+
+# ---------- Configs de editor locais ----------
+.vscode/

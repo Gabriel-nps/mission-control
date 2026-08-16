@@ -1,0 +1,4 @@
+<div class="mission-list">
+  <p *ngIf="missions.length === 0">No missions yet.</p>
+  <app-mission-card *ngFor="let mission of missions" [mission]="mission"></app-mission-card>
+</div>

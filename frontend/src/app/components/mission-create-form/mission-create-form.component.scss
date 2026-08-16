@@ -1,0 +1,20 @@
+.create-form {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+
+  .form-group {
+    margin-bottom: 1rem;
+    label { display: block; margin-bottom: 0.25rem; }
+    input, select { width: 100%; padding: 0.5rem; box-sizing: border-box; }
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  .error { color: red; margin-top: 0.5rem; }
+}
